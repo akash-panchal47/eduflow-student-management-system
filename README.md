@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Student Management System
 
 A beginner-friendly **Student Management System** built using **Spring Boot**, **MySQL**, and **Bootstrap**.
@@ -42,3 +43,7 @@ Update application.properties
 5. 👨‍💻 Author
   Akash Panchal
   Beginner Java Full Stack Developer
+=======
+# eduflow-student-management-system
+A full-stack Student Management System built with Spring Boot, Spring Data JPA, MySQL, Bootstrap 5, and JavaScript featuring CRUD operations, live grade calculation, CSV export, responsive UI, and REST APIs.
+>>>>>>> fd2b7d5afd474aaa8d92d172d5045a91c0463bb2
