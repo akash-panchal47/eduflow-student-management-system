@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>EduFlow | Student Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <style>
+        :root {
+          --b400:#60a5fa; --b500:#3b82f6; --b600:#2563eb; --b700:#1d4ed8;
+          --wh:#ffffff; --g400:#94a3b8; --g600:#475569; --g800:#1e293b; --blk:#0f172a;
+          --red:#ef4444; --amber:#f59e0b; --grn:#10b981; --pur:#8b5cf6;
+          --s-sm:0 1px 4px rgba(0,0,0,.06);
+          --s-md:0 4px 20px rgba(37,99,235,.12),0 1px 4px rgba(0,0,0,.05);
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        html{scroll-behavior:smooth;}
+
+        body{
+          font-family:'Inter',sans-serif;
+          background:#060d1f;
+          color:#e2e8f0;
+          min-height:100vh;
+          overflow-x:hidden;
+        }
+
+        /* bg layers */
+        .bg-mesh{
+          position:fixed;inset:0;z-index:0;pointer-events:none;
+          background:
+            radial-gradient(ellipse 80% 60% at 10% 5%, rgba(59,130,246,.22) 0%,transparent 55%),
+            radial-gradient(ellipse 60% 50% at 90% 90%,rgba(139,92,246,.18) 0%,transparent 55%),
+            radial-gradient(ellipse 40% 30% at 80% 20%,rgba(236,72,153,.12) 0%,transparent 50%);
+          animation:meshDrift 18s ease-in-out infinite alternate;
+        }
+        @keyframes meshDrift{0%{filter:hue-rotate(0deg) brightness(1)}50%{filter:hue-rotate(15deg) brightness(1.06)}100%{filter:hue-rotate(-10deg) brightness(.96)}}
+        .grid-lines{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px);background-size:60px 60px;}
+        .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;}
+        .orb-1{width:500px;height:500px;background:rgba(59,130,246,.18);top:-150px;left:-150px;animation:orbFloat 14s ease-in-out infinite alternate;}
+        .orb-2{width:400px;height:400px;background:rgba(139,92,246,.14);bottom:-100px;right:-100px;animation:orbFloat 17s ease-in-out infinite alternate-reverse;}
+        .orb-3{width:300px;height:300px;background:rgba(6,182,212,.12);top:40%;left:55%;animation:orbFloat 11s ease-in-out infinite alternate;}
+        .orb-4{width:250px;height:250px;background:rgba(236,72,153,.10);top:20%;right:10%;animation:orbFloat 9s ease-in-out infinite alternate-reverse;}
+        @keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,40px) scale(1.12)}}
+        .particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+        .particle{position:absolute;border-radius:50%;background:rgba(96,165,250,.5);animation:particleDrift linear infinite;}
+        @keyframes particleDrift{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.6}100%{transform:translateY(-100px) scale(1);opacity:0}}
+
+        /* ══ NAVBAR ══ */
+        .edu-nav{
+          position:sticky;top:0;z-index:500;
+          background:rgba(6,13,31,.80);
+          backdrop-filter:blur(20px) saturate(180%);
+          -webkit-backdrop-filter:blur(20px) saturate(180%);
+          border-bottom:1px solid rgba(59,130,246,.18);
+          box-shadow:0 4px 30px rgba(0,0,0,.35);
+        }
+        .nav-inner{display:flex;align-items:center;padding:0 28px;height:68px;max-width:1200px;margin:auto;gap:12px;}
+        .brand{display:flex;align-items:center;gap:12px;text-decoration:none;flex-shrink:0;cursor:pointer;}
+        .brand-ico{
+          width:42px;height:42px;
+          background:linear-gradient(135deg,var(--b500),var(--pur));
+          border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;
+          box-shadow:0 4px 18px rgba(59,130,246,.45);
+          animation:logoPulse 3s ease-in-out infinite;
+        }
+        @keyframes logoPulse{0%,100%{box-shadow:0 4px 18px rgba(59,130,246,.45)}50%{box-shadow:0 4px 28px rgba(139,92,246,.6)}}
+        .brand-name{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:700;color:#f1f5f9;letter-spacing:-.4px;}
+        .brand-tag{font-size:10px;color:rgba(148,163,184,.7);display:block;margin-top:-2px;}
+
+        .nav-links{display:flex;align-items:center;gap:2px;}
+        .nl{
+          display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;
+          font-size:13px;font-weight:500;color:#94a3b8;
+          border:none;background:transparent;cursor:pointer;
+          transition:background .2s,color .2s,transform .15s;white-space:nowrap;
+          position:relative;overflow:hidden;
+        }
+        .nl::before{content:'';position:absolute;inset:0;border-radius:10px;background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.1));opacity:0;transition:opacity .2s;}
+        .nl:hover::before,.nl.active::before{opacity:1;}
+        .nl:hover,.nl.active{color:#e2e8f0;transform:translateY(-1px);}
+        .nl i{font-size:12px;}
+
+        .nav-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+        .nav-badge{background:rgba(59,130,246,.15);color:#93c5fd;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px;border:1px solid rgba(59,130,246,.25);}
+        .nav-badge .dot{width:7px;height:7px;background:var(--grn);border-radius:50%;animation:pulse 2s infinite;box-shadow:0 0 6px rgba(16,185,129,.6);}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+        .nav-add-btn{
+          background:linear-gradient(135deg,var(--b500),var(--pur));
+          color:white;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:600;
+          cursor:pointer;display:flex;align-items:center;gap:8px;
+          transition:transform .2s,box-shadow .2s;
+          box-shadow:0 4px 16px rgba(59,130,246,.35);
+        }
+        .nav-add-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(59,130,246,.5);}
+
+        .nav-toggle{display:none;background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;}
+
+        @media(max-width:900px){
+          .nav-toggle{display:block;}
+          .nav-links{
+            display:none;flex-direction:column;align-items:flex-start;
+            position:absolute;top:68px;left:0;right:0;
+            background:rgba(6,13,31,.97);backdrop-filter:blur(20px);
+            border-bottom:1px solid rgba(59,130,246,.15);
+            padding:12px 16px;gap:4px;box-shadow:0 20px 40px rgba(0,0,0,.4);z-index:400;
+          }
+          .nav-links.open{display:flex;}
+          .nl{width:100%;}
+        }
+        @media(max-width:600px){.nav-right .nav-badge{display:none;}}
+
+        /* ══ PAGE SECTIONS ══ */
+        .page{position:relative;z-index:1;padding:52px 0 100px;}
+
+        /* hero */
+        .hero{text-align:center;margin-bottom:52px;}
+        .hero-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,.12);color:#93c5fd;border-radius:999px;padding:6px 18px;font-size:13px;font-weight:500;border:1px solid rgba(59,130,246,.25);margin-bottom:22px;backdrop-filter:blur(8px);animation:fadeUp .6s ease both;}
+        .hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(32px,5.5vw,58px);font-weight:700;letter-spacing:-2px;line-height:1.12;color:#f1f5f9;animation:fadeUp .6s .1s ease both;}
+        .hero h1 .grad{background:linear-gradient(135deg,#60a5fa,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 200%;animation:gradShift 4s ease infinite;}
+        @keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .hero p{color:#94a3b8;font-size:16px;margin-top:14px;max-width:480px;margin-inline:auto;line-height:1.7;animation:fadeUp .6s .2s ease both;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+        /* stats */
+        .stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:32px;}
+        .stat{
+          flex:1;min-width:140px;
+          background:rgba(15,23,42,.6);backdrop-filter:blur(16px);
+          border:1px solid rgba(59,130,246,.15);border-radius:16px;
+          padding:16px 20px;display:flex;align-items:center;gap:14px;
+          transition:transform .25s,box-shadow .25s,border-color .25s;
+          position:relative;overflow:hidden;
+        }
+        .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(96,165,250,.4),transparent);}
+        .stat:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(59,130,246,.2);border-color:rgba(59,130,246,.35);}
+        .stat-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:17px;flex-shrink:0;}
+        .si-blue  {background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 4px 14px rgba(59,130,246,.4);}
+        .si-green {background:linear-gradient(135deg,#34d399,#059669);box-shadow:0 4px 14px rgba(16,185,129,.4);}
+        .si-amber {background:linear-gradient(135deg,#fbbf24,#d97706);box-shadow:0 4px 14px rgba(245,158,11,.4);}
+        .si-purple{background:linear-gradient(135deg,#a78bfa,#7c3aed);box-shadow:0 4px 14px rgba(139,92,246,.4);}
+        .si-red   {background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 4px 14px rgba(239,68,68,.4);}
+        .stat-lbl{font-size:11px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.05em;}
+        .stat-val{font-size:24px;font-weight:700;color:#f1f5f9;font-family:'Space Grotesk',sans-serif;line-height:1.1;}
+
+        /* card */
+        .card-g{
+          background:rgba(15,23,42,.70);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
+          border-radius:20px;border:1px solid rgba(59,130,246,.15);
+          box-shadow:0 8px 32px rgba(0,0,0,.3),0 1px 0 rgba(255,255,255,.04);
+          overflow:hidden;margin-bottom:28px;
+          position:relative;animation:fadeUp .6s ease both;
+        }
+        .card-g::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(96,165,250,.35),rgba(168,139,250,.25),transparent);}
+        .ch{background:linear-gradient(135deg,rgba(29,78,216,.5) 0%,rgba(37,99,235,.35) 50%,rgba(109,40,217,.3) 100%);border-bottom:1px solid rgba(59,130,246,.2);padding:20px 28px;display:flex;align-items:center;gap:14px;}
+        .ch-ico{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:white;font-size:16px;flex-shrink:0;}
+        .ch h2{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;color:#f1f5f9;margin:0;}
+        .ch p{font-size:12px;color:rgba(148,163,184,.8);margin:2px 0 0;}
+        .cb{padding:28px;}
+        .div{height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.25),transparent);margin:24px 0;}
+
+        /* ══ FORM — FIXED TEXT VISIBILITY ══ */
+        .form-label{font-size:13px;font-weight:600;color:#cbd5e1;margin-bottom:6px;display:block;}
+        .req{color:#f87171;margin-left:2px;}
+
+        .iw{position:relative;}
+        .iw .ii{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#60a5fa;font-size:13px;pointer-events:none;z-index:2;}
+        .iw input{padding-left:38px!important;}
+
+        /* ─── KEY FIX: white text, bright border, lighter bg ─── */
+        .form-control,
+        .form-select {
+          border: 1.5px solid rgba(96,165,250,.45) !important;
+          border-radius: 11px;
+          padding: 11px 14px;
+          font-size: 14px;
+          color: #f1f5f9 !important;
+          background: rgba(30,41,59,.85) !important;
+          width: 100%;
+          transition: border .2s, box-shadow .2s, background .2s;
+          caret-color: #60a5fa;
+        }
+        .form-control:focus,
+        .form-select:focus {
+          border-color: #60a5fa !important;
+          box-shadow: 0 0 0 3px rgba(59,130,246,.2), 0 0 20px rgba(59,130,246,.1) !important;
+          outline: none;
+          background: rgba(30,41,59,.98) !important;
+          color: #f8fafc !important;
+        }
+        .form-control::placeholder{color:#64748b;}
+        .form-select{color:#f1f5f9!important;}
+        .form-select option{background:#0f172a;color:#f1f5f9;}
+
+        /* number input arrows */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button{opacity:.4;}
+
+        .marks-row{display:flex;gap:10px;align-items:flex-end;}
+        .marks-row .form-control{flex:1;}
+        .grade-chip{padding:11px 15px;border-radius:11px;font-size:13px;font-weight:700;min-width:58px;text-align:center;border:1.5px solid rgba(59,130,246,.25);background:rgba(30,41,59,.85);color:#64748b;transition:all .3s;flex-shrink:0;}
+
+        .form-section-lbl{font-size:11px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;margin-bottom:16px;margin-top:4px;display:flex;align-items:center;gap:8px;}
+        .form-section-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(59,130,246,.2),transparent);}
+
+        .edit-banner{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:11px;padding:11px 16px;font-size:13px;font-weight:500;color:#fbbf24;display:flex;align-items:center;gap:9px;margin-bottom:20px;backdrop-filter:blur(8px);}
+
+        /* ══ BUTTONS ══ */
+        .btn-prim{
+          background:linear-gradient(135deg,#3b82f6,#1d4ed8,#7c3aed);background-size:200% 200%;
+          color:white;border:none;border-radius:11px;padding:12px 22px;font-size:14px;font-weight:600;
+          cursor:pointer;display:inline-flex;align-items:center;gap:9px;
+          transition:transform .2s,box-shadow .2s;box-shadow:0 4px 18px rgba(59,130,246,.35);
+          position:relative;overflow:hidden;
+        }
+        .btn-prim:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(59,130,246,.5);}
+        .btn-prim:active{transform:scale(.97);}
+
+        .btn-out{
+          background:rgba(59,130,246,.08);color:#93c5fd;
+          border:1.5px solid rgba(59,130,246,.25);border-radius:11px;
+          padding:11px 20px;font-size:14px;font-weight:600;
+          cursor:pointer;display:inline-flex;align-items:center;gap:9px;
+          transition:background .2s,border-color .2s,color .2s,transform .15s;
+        }
+        .btn-out:hover{background:rgba(59,130,246,.18);border-color:rgba(96,165,250,.5);color:#bfdbfe;transform:translateY(-1px);}
+
+        /* ══ ALERT ══ */
+        .alert-edu{border-radius:12px;padding:12px 18px;font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:10px;margin-bottom:20px;backdrop-filter:blur(12px);animation:alertPop .35s cubic-bezier(.34,1.56,.64,1) both;}
+        @keyframes alertPop{from{opacity:0;transform:scale(.94) translateY(-6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .alert-ok {background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
+        .alert-err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+
+        /* ══ TABLE ══ */
+        .tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid rgba(59,130,246,.15);}
+        table.etbl{width:100%;border-collapse:collapse;font-size:13.5px;}
+        table.etbl thead tr{background:linear-gradient(90deg,rgba(29,78,216,.5),rgba(37,99,235,.4),rgba(109,40,217,.35));}
+        table.etbl thead th{padding:13px 16px;text-align:left;font-weight:600;font-size:12px;color:#bfdbfe;white-space:nowrap;letter-spacing:.04em;}
+        table.etbl tbody tr{border-bottom:1px solid rgba(59,130,246,.08);transition:background .2s;}
+        table.etbl tbody tr:last-child{border-bottom:none;}
+        table.etbl tbody tr:hover{background:rgba(59,130,246,.07);}
+        table.etbl td{padding:12px 16px;color:#cbd5e1;vertical-align:middle;}
+
+        .cell-id{font-family:'Space Grotesk',sans-serif;font-weight:700;color:#60a5fa;font-size:13px;}
+        .roll-badge{display:inline-block;background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.25);border-radius:7px;padding:3px 9px;font-size:12px;font-weight:600;font-family:'Space Grotesk',sans-serif;}
+        .name-cell{font-weight:600;color:#f1f5f9;}
+
+        .grade-pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;}
+        .gA{background:rgba(16,185,129,.18);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);}
+        .gB{background:rgba(59,130,246,.18);color:#93c5fd;border:1px solid rgba(59,130,246,.3);}
+        .gC{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3);}
+        .gD{background:rgba(249,115,22,.15);color:#fdba74;border:1px solid rgba(249,115,22,.3);}
+        .gF{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3);}
+
+        .marks-bar-wrap{min-width:90px;}
+        .marks-bar-bg{background:rgba(59,130,246,.12);border-radius:999px;height:6px;margin-top:5px;overflow:hidden;}
+        .marks-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#60a5fa,#a78bfa);transition:width .5s ease;box-shadow:0 0 8px rgba(96,165,250,.4);}
+
+        .act{border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:transform .15s,box-shadow .2s;}
+        .act:hover{transform:translateY(-1px);}
+        .act-e{background:rgba(245,158,11,.12);color:#fcd34d;border:1px solid rgba(245,158,11,.25);}
+        .act-e:hover{box-shadow:0 4px 14px rgba(245,158,11,.25);background:rgba(245,158,11,.2);}
+        .act-d{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.25);}
+        .act-d:hover{box-shadow:0 4px 14px rgba(239,68,68,.25);background:rgba(239,68,68,.2);}
+
+        .empty{text-align:center;padding:56px 20px;color:#475569;}
+        .empty i{font-size:48px;margin-bottom:16px;color:rgba(59,130,246,.25);display:block;}
+        .empty p{font-size:15px;color:#64748b;}
+
+        .tbl-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;}
+        .tbl-count{font-size:13px;color:#64748b;}
+        .tbl-count span{font-weight:700;color:#60a5fa;}
+
+        .search-bar{position:relative;max-width:300px;}
+        .search-bar i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#475569;font-size:13px;pointer-events:none;}
+        .search-bar input{
+          padding:10px 14px 10px 36px;
+          border:1.5px solid rgba(59,130,246,.25)!important;border-radius:11px;
+          font-size:13px;color:#e2e8f0!important;width:100%;
+          background:rgba(30,41,59,.85)!important;
+          transition:border .2s,box-shadow .2s;
+        }
+        .search-bar input:focus{border-color:rgba(96,165,250,.6)!important;outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+        .search-bar input::placeholder{color:#475569;}
+
+        /* ══ DELETE CONFIRM POPUP ══ */
+        .popup-overlay{
+          position:fixed;inset:0;z-index:9000;
+          background:rgba(2,6,23,.80);
+          backdrop-filter:blur(12px) saturate(140%);
+          -webkit-backdrop-filter:blur(12px) saturate(140%);
+          display:flex;align-items:center;justify-content:center;padding:20px;
+          opacity:0;pointer-events:none;
+          transition:opacity .3s ease;
+        }
+        .popup-overlay.active{opacity:1;pointer-events:all;}
+        .popup-box{
+          background:rgba(15,23,42,.96);
+          border:1px solid rgba(239,68,68,.35);
+          border-radius:22px;padding:36px 32px;
+          max-width:420px;width:100%;
+          box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 60px rgba(239,68,68,.15);
+          transform:scale(.88) translateY(24px);
+          transition:transform .38s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;
+          opacity:0;position:relative;overflow:hidden;
+        }
+        .popup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(239,68,68,.5),transparent);}
+        .popup-overlay.active .popup-box{transform:scale(1) translateY(0);opacity:1;}
+
+        .popup-icon{width:68px;height:68px;border-radius:18px;margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:30px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5;box-shadow:0 0 30px rgba(239,68,68,.2);}
+        .popup-title{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:700;color:#f1f5f9;text-align:center;margin-bottom:10px;}
+        .popup-msg{font-size:14px;color:#94a3b8;text-align:center;line-height:1.65;margin-bottom:28px;}
+        .popup-actions{display:flex;gap:12px;justify-content:center;}
+
+        .btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;border-radius:11px;padding:12px 26px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 16px rgba(239,68,68,.35);}
+        .btn-danger:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(239,68,68,.55);}
+        .btn-danger:active{transform:scale(.96);}
+        .btn-cancel{background:rgba(255,255,255,.07);color:#94a3b8;border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:12px 26px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .2s,color .2s;}
+        .btn-cancel:hover{background:rgba(255,255,255,.13);color:#cbd5e1;}
+
+        /* ══ ABOUT ══ */
+        .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:24px;}
+        .feat{background:rgba(15,23,42,.5);border:1px solid rgba(59,130,246,.12);border-radius:16px;padding:22px 20px;transition:transform .25s,box-shadow .25s,border-color .25s;position:relative;overflow:hidden;}
+        .feat:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.4),0 4px 12px rgba(59,130,246,.15);border-color:rgba(59,130,246,.28);}
+        .feat-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;margin-bottom:14px;}
+        .feat h5{font-size:14px;font-weight:600;color:#e2e8f0;margin-bottom:6px;}
+        .feat p{font-size:12px;color:#64748b;margin:0;line-height:1.6;}
+
+        .tech-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
+        .tech-chip{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.18);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:600;color:#93c5fd;display:flex;align-items:center;gap:7px;transition:background .2s;}
+        .tech-chip:hover{background:rgba(59,130,246,.15);}
+
+        /* API endpoints table */
+        .api-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+        .api-table thead tr{background:rgba(29,78,216,.35);}
+        .api-table thead th{padding:11px 14px;text-align:left;font-weight:600;font-size:12px;color:#bfdbfe;white-space:nowrap;}
+        .api-table tbody tr{border-bottom:1px solid rgba(59,130,246,.08);}
+        .api-table tbody tr:last-child{border-bottom:none;}
+        .api-table tbody tr:hover{background:rgba(59,130,246,.05);}
+        .api-table td{padding:10px 14px;color:#cbd5e1;}
+        .api-table code{background:rgba(59,130,246,.1);color:#93c5fd;padding:2px 7px;border-radius:5px;font-size:12px;}
+
+        .method-badge{display:inline-flex;align-items:center;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;}
+        .m-get   {background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.25);}
+        .m-post  {background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.25);}
+        .m-put   {background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.25);}
+        .m-delete{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.25);}
+
+        /* ══ FOOTER ══ */
+        footer{text-align:center;padding:24px 20px;font-size:12.5px;color:#475569;border-top:1px solid rgba(59,130,246,.1);background:rgba(6,13,31,.8);backdrop-filter:blur(12px);position:relative;z-index:1;}
+        footer strong{color:#60a5fa;}
+        footer .heart{color:#ec4899;animation:heartBeat 1.5s ease infinite;display:inline-block;}
+        @keyframes heartBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+
+        /* scroll reveal */
+        .reveal{opacity:0;transform:translateY(32px);transition:opacity .65s ease,transform .65s ease;}
+        .reveal.visible{opacity:1;transform:translateY(0);}
+
+        /* row anim */
+        @keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+        .row-in{animation:rowIn .3s ease both;}
+
+        /* stat counter */
+        .counting{animation:countBounce .4s cubic-bezier(.34,1.56,.64,1);}
+        @keyframes countBounce{0%{transform:scale(.8)}100%{transform:scale(1)}}
+
+        @media(max-width:768px){
+          .page{padding:30px 0 70px;}
+          .cb{padding:20px;}
+          .ch{padding:16px 20px;}
+          .stats{gap:10px;}
+          .stat{min-width:calc(50% - 7px);}
+          .popup-box{padding:28px 22px;}
+        }
+        @media(max-width:480px){
+          .stat{min-width:100%;}
+          .tbl-toolbar{flex-direction:column;align-items:flex-start;}
+          .search-bar{max-width:100%;width:100%;}
+          .popup-actions{flex-direction:column;}
+          .btn-danger,.btn-cancel{width:100%;justify-content:center;}
+        }
+    </style>
+</head>
+<body>
+
+<!-- BG layers -->
+<div class="bg-mesh"></div>
+<div class="grid-lines"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="orb orb-4"></div>
+<div class="particles" id="particles"></div>
+
+<!-- ══ DELETE POPUP ══ -->
+<div class="popup-overlay" id="deletePopup">
+    <div class="popup-box">
+        <div class="popup-icon"><i class="fa fa-triangle-exclamation"></i></div>
+        <div class="popup-title">Delete Student?</div>
+        <div class="popup-msg" id="deletePopupMsg">This action cannot be undone.</div>
+        <div class="popup-actions">
+            <button class="btn-cancel" onclick="closeDeletePopup()"><i class="fa fa-xmark"></i> Cancel</button>
+            <button class="btn-danger" id="deleteConfirmBtn"><i class="fa fa-trash"></i> Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="edu-nav">
+    <div class="nav-inner">
+
+        <a class="brand" onclick="scrollToSection('heroTop')">
+            <div class="brand-ico">🎓</div>
+            <div>
+                <span class="brand-name">EduFlow</span>
+                <span class="brand-tag">Student Management System</span>
+            </div>
+        </a>
+
+        <button class="nav-toggle" onclick="toggleNav()"><i class="fa fa-bars" id="navIcon"></i></button>
+
+        <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end;">
+            <div class="nav-links" id="navMenu">
+                <button class="nl active" id="nl-dashboard" onclick="navClick('dashboard')">
+                    <i class="fa fa-house"></i> Dashboard
+                </button>
+                <button class="nl" id="nl-records" onclick="navClick('records')">
+                    <i class="fa fa-table-list"></i> Records
+                </button>
+                <button class="nl" id="nl-about" onclick="navClick('about')">
+                    <i class="fa fa-circle-info"></i> About
+                </button>
+                <button class="nl" id="nl-export" onclick="exportCSV()">
+                    <i class="fa fa-file-csv"></i> Export CSV
+                </button>
+            </div>
+            <div class="nav-right">
+                <div class="nav-badge">
+                    <span class="dot"></span>
+                    <span id="navCount">0 Students</span>
+                </div>
+                <button class="nav-add-btn" onclick="focusForm()">
+                    <i class="fa fa-plus"></i> Add Student
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ══ PAGE ══ -->
+<div class="page">
+    <div class="container" style="max-width:1140px;">
+
+        <!-- Hero -->
+        <div id="heroTop" style="padding-top:4px;"></div>
+        <div class="hero">
+            <div class="hero-pill"><i class="fa fa-star"></i> Spring Boot Full-Stack Project</div>
+            <h1>Smart <span class="grad">Student Records</span><br>Management</h1>
+            <p>Add, update, track marks and manage every student profile — all from one clean dashboard.</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat reveal" style="transition-delay:.05s"><div class="stat-ico si-blue"><i class="fa fa-users"></i></div><div><div class="stat-lbl">Total Students</div><div class="stat-val" id="stTotal">0</div></div></div>
+            <div class="stat reveal" style="transition-delay:.1s"><div class="stat-ico si-green"><i class="fa fa-graduation-cap"></i></div><div><div class="stat-lbl">Courses</div><div class="stat-val" id="stCourses">0</div></div></div>
+            <div class="stat reveal" style="transition-delay:.15s"><div class="stat-ico si-amber"><i class="fa fa-chart-bar"></i></div><div><div class="stat-lbl">Avg. Marks</div><div class="stat-val" id="stAvg">—</div></div></div>
+            <div class="stat reveal" style="transition-delay:.2s"><div class="stat-ico si-purple"><i class="fa fa-trophy"></i></div><div><div class="stat-lbl">Top Score</div><div class="stat-val" id="stTop">—</div></div></div>
+            <div class="stat reveal" style="transition-delay:.25s"><div class="stat-ico si-red"><i class="fa fa-city"></i></div><div><div class="stat-lbl">Cities</div><div class="stat-val" id="stCities">0</div></div></div>
+        </div>
+
+        <!-- ── FORM CARD ── -->
+        <div class="card-g reveal" id="dashboardSection" style="transition-delay:.1s">
+            <div class="ch">
+                <div class="ch-ico"><i class="fa fa-user-plus"></i></div>
+                <div><h2>Student Registration</h2><p>Fill in all details and save the record to the database.</p></div>
+            </div>
+            <div class="cb">
+                <div id="editBanner" class="edit-banner" style="display:none;">
+                    <i class="fa fa-pen-to-square"></i>
+                    <span>Edit mode — update the details and click <strong>Update Student</strong>.</span>
+                    <button onclick="cancelEdit()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#fbbf24;font-weight:700;font-size:17px;">✕</button>
+                </div>
+                <div id="msgBox"></div>
+                <form id="studentForm" autocomplete="off">
+                    <input type="hidden" id="studentId"/>
+
+                    <p class="form-section-lbl"><i class="fa fa-id-card" style="margin-right:6px;color:#60a5fa"></i>Personal Information</p>
+                    <div class="row g-3">
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">Roll Number</label>
+                            <div class="iw"><i class="ii fa fa-hashtag"></i>
+                                <input type="text" id="rollNo" class="form-control" placeholder="e.g. CS-2024-001"/>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">Student Name <span class="req">*</span></label>
+                            <div class="iw"><i class="ii fa fa-user"></i>
+                                <input type="text" id="name" class="form-control" placeholder="Full name" required/>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">Email Address <span class="req">*</span></label>
+                            <div class="iw"><i class="ii fa fa-envelope"></i>
+                                <input type="email" id="email" class="form-control" placeholder="student@example.com" required/>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">Mobile Number</label>
+                            <div class="iw"><i class="ii fa fa-phone"></i>
+                                <input type="text" id="mobile" class="form-control" placeholder="10-digit number" maxlength="10"/>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">City</label>
+                            <div class="iw"><i class="ii fa fa-location-dot"></i>
+                                <input type="text" id="city" class="form-control" placeholder="e.g. Pune"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="div"></div>
+
+                    <p class="form-section-lbl"><i class="fa fa-book-open" style="margin-right:6px;color:#a78bfa"></i>Academic Information</p>
+                    <div class="row g-3">
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">Course</label>
+                            <div class="iw"><i class="ii fa fa-book"></i>
+                                <input type="text" id="course" class="form-control" placeholder="e.g. B.Tech CSE"/>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">Year / Semester</label>
+                            <div class="iw"><i class="ii fa fa-calendar"></i>
+                                <input type="text" id="year" class="form-control" placeholder="e.g. 2nd Year / Sem 4"/>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-6">
+                            <label class="form-label">Marks <small style="color:#475569;font-weight:400;">(out of 100)</small></label>
+                            <div class="marks-row">
+                                <input type="number" id="marks" class="form-control" placeholder="0 – 100" min="0" max="100" oninput="updateGradePreview(this.value)"/>
+                                <div class="grade-chip" id="gradePreview">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="div"></div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn-prim">
+                            <i class="fa fa-floppy-disk"></i><span id="submitLabel">Save Student</span>
+                        </button>
+                        <button type="button" class="btn-out" onclick="cancelEdit()">
+                            <i class="fa fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── TABLE CARD ── -->
+        <div class="card-g reveal" id="recordsSection" style="transition-delay:.15s">
+            <div class="ch">
+                <div class="ch-ico"><i class="fa fa-table-list"></i></div>
+                <div><h2>All Student Records</h2><p>Click Edit to modify a record or Delete to remove it.</p></div>
+            </div>
+            <div class="cb">
+                <div class="tbl-toolbar">
+                    <div class="tbl-count">Showing <span id="tblCount">0</span> student(s)</div>
+                    <div class="search-bar">
+                        <i class="fa fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search name, roll, course, city…" oninput="filterTable()"/>
+                    </div>
+                </div>
+                <div class="tbl-wrap">
+                    <table class="etbl">
+                        <thead>
+                        <tr>
+                            <th>ID</th><th>Roll No.</th><th>Name</th><th>Email</th>
+                            <th>Course</th><th>Year / Sem</th><th>Mobile</th><th>City</th>
+                            <th>Marks</th><th>Grade</th><th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="studentTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ABOUT CARD ── -->
+        <div class="card-g reveal" id="aboutSection" style="transition-delay:.2s">
+            <div class="ch">
+                <div class="ch-ico"><i class="fa fa-rocket"></i></div>
+                <div><h2>About This Project</h2><p>A full-stack CRUD application built for learning Spring Boot development.</p></div>
+            </div>
+            <div class="cb">
+                <div class="feat-grid">
+                    <div class="feat"><div class="feat-ic si-blue"><i class="fa fa-bolt"></i></div><h5>Fast CRUD</h5><p>Add, edit, delete and view records instantly without page reloads.</p></div>
+                    <div class="feat"><div class="feat-ic si-green"><i class="fa fa-chart-line"></i></div><h5>Marks Tracker</h5><p>Track student marks with live grade calculation and progress bars.</p></div>
+                    <div class="feat"><div class="feat-ic si-amber"><i class="fa fa-mobile-screen"></i></div><h5>Responsive UI</h5><p>Works seamlessly across mobile, tablet, and desktop screens.</p></div>
+                    <div class="feat"><div class="feat-ic si-purple"><i class="fa fa-plug"></i></div><h5>REST API</h5><p>Connected to Spring Boot RESTful backend running on port 9090.</p></div>
+                    <div class="feat"><div class="feat-ic si-red"><i class="fa fa-file-csv"></i></div><h5>CSV Export</h5><p>Export all student records to CSV with one click from the navbar.</p></div>
+                    <div class="feat"><div class="feat-ic" style="background:linear-gradient(135deg,#06b6d4,#0284c7);box-shadow:0 4px 14px rgba(6,182,212,.4)"><i class="fa fa-database"></i></div><h5>JPA Persistence</h5><p>Data stored and managed via Spring Data JPA with MySQL.</p></div>
+                </div>
+
+                <div class="div"></div>
+
+                <!-- API Endpoints -->
+                <p style="font-size:13px;font-weight:700;color:#cbd5e1;margin-bottom:14px;display:flex;align-items:center;gap:8px;"><i class="fa fa-plug" style="color:#60a5fa"></i> REST API Endpoints — localhost:9090</p>
+                <div class="tbl-wrap" style="margin-bottom:20px;">
+                    <table class="api-table">
+                        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                        <tbody>
+                        <tr><td><span class="method-badge m-get">GET</span></td><td><code>/students</code></td><td>Get all students</td></tr>
+                        <tr><td><span class="method-badge m-get">GET</span></td><td><code>/students/{id}</code></td><td>Get student by ID</td></tr>
+                        <tr><td><span class="method-badge m-post">POST</span></td><td><code>/students</code></td><td>Add a new student</td></tr>
+                        <tr><td><span class="method-badge m-put">PUT</span></td><td><code>/students/{id}</code></td><td>Update student by ID</td></tr>
+                        <tr><td><span class="method-badge m-delete">DELETE</span></td><td><code>/students/{id}</code></td><td>Delete student by ID</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="font-size:13px;font-weight:600;color:#cbd5e1;margin-bottom:4px;">Tech Stack</p>
+                <div class="tech-list">
+                    <div class="tech-chip"><i class="fa fa-leaf" style="color:#34d399"></i> Spring Boot 3</div>
+                    <div class="tech-chip"><i class="fa fa-database" style="color:#60a5fa"></i> Spring Data JPA</div>
+                    <div class="tech-chip"><i class="fa fa-circle-dot" style="color:#f87171"></i> MySQL</div>
+                    <div class="tech-chip"><i class="fa fa-bootstrap" style="color:#a78bfa"></i> Bootstrap 5</div>
+                    <div class="tech-chip"><i class="fa fa-js" style="color:#fbbf24"></i> Vanilla JS</div>
+                    <div class="tech-chip"><i class="fa fa-code" style="color:#60a5fa"></i> REST API</div>
+                    <div class="tech-chip"><i class="fa fa-font-awesome" style="color:#93c5fd"></i> Font Awesome 6</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<footer>
+    © 2026 <strong>EduFlow</strong> Student Management System &nbsp;·&nbsp;
+    Built with Spring Boot + Bootstrap &nbsp;·&nbsp;
+    <span class="heart">❤</span> Made for learning
+</footer>
+
+<script>
+    const API = "http://localhost:9090/students";
+    let allStudents = [];
+    let pendingDeleteId = null;
+
+    /* ── particles ── */
+    (function(){
+      const c = document.getElementById('particles');
+      for(let i=0;i<22;i++){
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const s = Math.random()*4+2;
+        p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*15+10}s;animation-delay:${Math.random()*15}s;opacity:${Math.random()*.4+.15};background:rgba(${Math.random()>.5?'96,165,250':'168,139,250'},.6);`;
+        c.appendChild(p);
+      }
+    })();
+
+    /* ── scroll reveal ── */
+    const ro = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:.08});
+    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+    /* ── boot ── */
+    window.onload = loadStudents;
+
+    /* ── load students ── */
+    function loadStudents(){
+      fetch(API)
+        .then(r => { if(!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          allStudents = data;
+          renderTable(data);
+          updateStats(data);
+        })
+        .catch(() => showMsg("⚠️ Cannot reach the server. Make sure Spring Boot is running on port 9090.", "err"));
+    }
+
+    /* ── render table ── */
+    function renderTable(data){
+      const tbody = document.getElementById("studentTable");
+      document.getElementById("tblCount").textContent = data.length;
+      if(!data.length){
+        tbody.innerHTML = `<tr><td colspan="11"><div class="empty"><i class="fa fa-user-graduate"></i><p>No records found. Add a student using the form above.</p></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map((s,i) => {
+        const m = parseFloat(s.marks);
+        const has = !isNaN(m);
+        const grade = has ? calcGrade(m) : "—";
+        const pct = has ? Math.min(100,m) : 0;
+        const gc = has ? "g"+grade : "";
+        return `
+          <tr class="row-in" style="animation-delay:${i*30}ms">
+            <td class="cell-id">#${s.id}</td>
+            <td><span class="roll-badge">${s.rollNo||'—'}</span></td>
+            <td class="name-cell">${s.name}</td>
+            <td style="color:#64748b;font-size:13px;">${s.email}</td>
+            <td style="color:#94a3b8">${s.course||'—'}</td>
+            <td style="font-size:12px;color:#64748b">${s.year||'—'}</td>
+            <td style="color:#94a3b8">${s.mobile||s.phone||'—'}</td>
+            <td style="color:#94a3b8">${s.city||'—'}</td>
+            <td>${has?`<div class="marks-bar-wrap"><span style="font-weight:600;font-size:13px;color:#e2e8f0">${m}</span><div class="marks-bar-bg"><div class="marks-bar-fill" style="width:${pct}%"></div></div></div>`:'<span style="color:#475569">—</span>'}</td>
+            <td>${has?`<span class="grade-pill ${gc}">${grade}</span>`:'<span style="color:#475569;font-size:12px">—</span>'}</td>
+            <td style="white-space:nowrap;">
+              <button class="act act-e" onclick="editStudent(${s.id})"><i class="fa fa-pen"></i> Edit</button>
+              <button class="act act-d" onclick="openDeletePopup(${s.id})" style="margin-left:4px;"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    /* ── stats ── */
+    function updateStats(data){
+      const courses = new Set(data.map(s=>s.course).filter(Boolean));
+      const cities  = new Set(data.map(s=>s.city).filter(Boolean));
+      const marks   = data.map(s=>parseFloat(s.marks)).filter(v=>!isNaN(v));
+      animateStat("stTotal",   data.length);
+      animateStat("stCourses", courses.size);
+      animateStat("stCities",  cities.size);
+      document.getElementById("stAvg").textContent = marks.length ? (marks.reduce((a,b)=>a+b,0)/marks.length).toFixed(1) : "—";
+      document.getElementById("stTop").textContent = marks.length ? Math.max(...marks) : "—";
+      document.getElementById("navCount").textContent = data.length + " Student" + (data.length!==1?"s":"");
+    }
+
+    function animateStat(id, target){
+      const el = document.getElementById(id);
+      const start = parseInt(el.textContent)||0;
+      if(start===target) return;
+      let cur = start;
+      const step = Math.max(1, Math.ceil(Math.abs(target-start)/20));
+      const iv = setInterval(()=>{
+        cur = target>cur ? Math.min(cur+step,target) : Math.max(cur-step,target);
+        el.textContent = cur;
+        el.classList.add('counting');
+        setTimeout(()=>el.classList.remove('counting'),400);
+        if(cur===target) clearInterval(iv);
+      },40);
+    }
+
+    /* ── grade ── */
+    function calcGrade(m){
+      if(m>=90) return "A";
+      if(m>=75) return "B";
+      if(m>=60) return "C";
+      if(m>=45) return "D";
+      return "F";
+    }
+
+    function updateGradePreview(val){
+      const chip = document.getElementById("gradePreview");
+      const m = parseFloat(val);
+      if(!val||isNaN(m)||m<0||m>100){
+        chip.textContent="—"; chip.style.background=""; chip.style.color=""; chip.style.borderColor=""; chip.style.boxShadow=""; return;
+      }
+      const g = calcGrade(m);
+      const map={
+        A:["rgba(16,185,129,.18)","#6ee7b7","rgba(16,185,129,.3)","0 0 16px rgba(16,185,129,.25)"],
+        B:["rgba(59,130,246,.18)","#93c5fd","rgba(59,130,246,.3)","0 0 16px rgba(59,130,246,.25)"],
+        C:["rgba(245,158,11,.15)","#fcd34d","rgba(245,158,11,.3)","0 0 16px rgba(245,158,11,.2)"],
+        D:["rgba(249,115,22,.15)","#fdba74","rgba(249,115,22,.3)","0 0 16px rgba(249,115,22,.2)"],
+        F:["rgba(239,68,68,.15)","#fca5a5","rgba(239,68,68,.3)","0 0 16px rgba(239,68,68,.2)"]
+      };
+      [chip.style.background,chip.style.color,chip.style.borderColor,chip.style.boxShadow]=map[g];
+      chip.textContent=g;
+    }
+
+    /* ── submit ── */
+    document.getElementById("studentForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      const id = document.getElementById("studentId").value;
+      const student = {
+        rollNo: document.getElementById("rollNo").value.trim(),
+        name:   document.getElementById("name").value.trim(),
+        email:  document.getElementById("email").value.trim(),
+        mobile: document.getElementById("mobile").value.trim(),
+        city:   document.getElementById("city").value.trim(),
+        course: document.getElementById("course").value.trim(),
+        year:   document.getElementById("year").value.trim(),
+        marks:  document.getElementById("marks").value!==""?parseFloat(document.getElementById("marks").value):null,
+      };
+      const url = id ? `${API}/${id}` : API;
+      const method = id ? "PUT" : "POST";
+      fetch(url,{method,headers:{"Content-Type":"application/json"},body:JSON.stringify(student)})
+        .then(r=>{if(!r.ok) throw new Error(); return r.json().catch(()=>{});})
+        .then(()=>{ showMsg(id?"✅ Student updated successfully.":"✅ Student added successfully.","ok"); cancelEdit(); loadStudents(); })
+        .catch(()=> showMsg("❌ Failed to save. Check the server console.","err"));
+    });
+
+    /* ── edit ── */
+    function editStudent(id){
+      const s = allStudents.find(x=>x.id===id);
+      if(!s) return;
+      document.getElementById("studentId").value = id;
+      document.getElementById("rollNo").value    = s.rollNo||"";
+      document.getElementById("name").value      = s.name||"";
+      document.getElementById("email").value     = s.email||"";
+      document.getElementById("mobile").value    = s.mobile||s.phone||"";
+      document.getElementById("city").value      = s.city||"";
+      document.getElementById("course").value    = s.course||"";
+      document.getElementById("year").value      = s.year||"";
+      document.getElementById("marks").value     = s.marks!=null?s.marks:"";
+      updateGradePreview(s.marks);
+      document.getElementById("submitLabel").textContent="Update Student";
+      document.getElementById("editBanner").style.display="flex";
+      document.getElementById("dashboardSection").scrollIntoView({behavior:"smooth",block:"start"});
+    }
+
+    /* ── delete popup ── */
+    function openDeletePopup(id){
+      const s = allStudents.find(x=>x.id===id);
+      pendingDeleteId = id;
+      document.getElementById("deletePopupMsg").textContent =
+        `You are about to delete "${s?s.name:'this student'}". This action cannot be undone.`;
+      document.getElementById("deletePopup").classList.add("active");
+      // bind confirm button fresh each time
+      document.getElementById("deleteConfirmBtn").onclick = confirmDelete;
+    }
+    function closeDeletePopup(){
+      document.getElementById("deletePopup").classList.remove("active");
+      pendingDeleteId = null;
+    }
+    function confirmDelete(){
+      if(!pendingDeleteId) return;
+      const delId = pendingDeleteId;
+      closeDeletePopup();
+      fetch(`${API}/${delId}`,{method:"DELETE"})
+        .then(()=>{ showMsg("🗑️ Student deleted successfully.","ok"); loadStudents(); })
+        .catch(()=> showMsg("❌ Delete failed. Check the server.","err"));
+    }
+    // close on overlay background click
+    document.getElementById("deletePopup").addEventListener("click",function(e){
+      if(e.target===this) closeDeletePopup();
+    });
+    // close on Escape key
+    document.addEventListener("keydown",function(e){
+      if(e.key==="Escape") closeDeletePopup();
+    });
+
+    /* ── cancel edit ── */
+    function cancelEdit(){
+      document.getElementById("studentForm").reset();
+      document.getElementById("studentId").value="";
+      document.getElementById("submitLabel").textContent="Save Student";
+      document.getElementById("editBanner").style.display="none";
+      updateGradePreview("");
+    }
+
+    /* ── search ── */
+    function filterTable(){
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      if(!q){ renderTable(allStudents); return; }
+      renderTable(allStudents.filter(s=>
+        (s.name||"").toLowerCase().includes(q)||
+        (s.rollNo||"").toLowerCase().includes(q)||
+        (s.course||"").toLowerCase().includes(q)||
+        (s.email||"").toLowerCase().includes(q)||
+        (s.city||"").toLowerCase().includes(q)
+      ));
+    }
+
+    /* ── export CSV ── */
+    function exportCSV(){
+      if(!allStudents.length){ showMsg("No records to export.","err"); return; }
+      const headers=["ID","Roll No","Name","Email","Course","Year","Mobile","City","Marks","Grade"];
+      const rows=allStudents.map(s=>{
+        const m=parseFloat(s.marks);
+        return [s.id,s.rollNo||"",s.name,s.email,s.course||"",s.year||"",s.mobile||s.phone||"",s.city||"",isNaN(m)?"":m,isNaN(m)?"":calcGrade(m)];
+      });
+      const csv=[headers,...rows].map(r=>r.map(v=>`"${v}"`).join(",")).join("\n");
+      const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download=`students_export_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      showMsg("📥 CSV downloaded successfully.","ok");
+    }
+
+    /* ── navbar nav click (scroll to section) ── */
+    const navSections = {
+      dashboard: "dashboardSection",
+      records:   "recordsSection",
+      about:     "aboutSection"
+    };
+
+    function navClick(key){
+      // update active state
+      document.querySelectorAll('.nl').forEach(b=>b.classList.remove('active'));
+      document.getElementById('nl-'+key).classList.add('active');
+      // scroll
+      const target = document.getElementById(navSections[key]);
+      if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+      // close mobile menu
+      document.getElementById("navMenu").classList.remove("open");
+      document.getElementById("navIcon").className="fa fa-bars";
+    }
+
+    /* ── focus form from navbar ── */
+    function focusForm(){
+      navClick('dashboard');
+      setTimeout(()=>document.getElementById("name").focus(),500);
+    }
+
+    /* ── scroll to section (anchor) ── */
+    function scrollToSection(id){
+      document.getElementById(id)?.scrollIntoView({behavior:"smooth"});
+    }
+
+    /* ── mobile nav toggle ── */
+    function toggleNav(){
+      const m = document.getElementById("navMenu");
+      const ic = document.getElementById("navIcon");
+      m.classList.toggle("open");
+      ic.className = m.classList.contains("open")?"fa fa-xmark":"fa fa-bars";
+    }
+
+    /* ── alert ── */
+    function showMsg(txt,type){
+      const box = document.getElementById("msgBox");
+      if(!box) return;
+      const ic = type==="ok"?"fa-circle-check":"fa-circle-xmark";
+      box.innerHTML=`<div class="alert-edu alert-${type}"><i class="fa ${ic}"></i>${txt}</div>`;
+      setTimeout(()=>{ if(box) box.innerHTML=""; },4500);
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
